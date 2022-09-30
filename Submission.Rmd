@@ -1,0 +1,58 @@
+---
+title: "Submission"
+author: "MLG"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE, tidy = TRUE, tidy.opts = list(width.cutoff = 80))
+```
+
+## Data processing
+
+Data is loaded below and we only select relevant columns:
+\begin{itemize}
+  \item \textit{EVTYPE}: Type of disaster (eg. tornado)
+  \item \textit{FATALITIES}: amount of fatalities
+  \item \textit{INJURIES}: amount of injuries
+  \item \textit{PROPDMG}: total property damage
+  \item \textit{PROPDMGEXP}: magnitude of property damage (eg. million)
+  \item \textit{CROPDMG}: total crop damage
+  \item \textit{CROPDMGEXP}: magnitude of crop damage
+\end{itemize}
+
+```{r, cache = TRUE}
+library(dplyr)
+library(ggplot2)
+
+df <- read.csv('repdata_data_StormData.csv') %>% select(EVTYPE, FATALITIES, INJURIES, PROPDMG, PROPDMGEXP, CROPDMG, CROPDMGEXP)
+
+head(df)
+```
+
+## Data analysis
+
+### Across the United States, which types of events are most harmful with respect to population health?
+
+Harmful events can be defined as the events that caused the most fatalities/injuries. This can be considered over a period (i.e. total sum) or on average (eg. some harmful events do not occur often but cause a lot of damage). We will use both interpretations to answer the question. $df$ is transformed below so that we retrieve all the parameters above:
+
+```{r}
+harmful_df <- df %>% mutate(EVTYPE = trimws(EVTYPE)) %>% group_by(EVTYPE) %>% summarise(count = n(), sum_injuries = sum(INJURIES), sum_fatalities = sum(FATALITIES), mean_injuries = mean(INJURIES), mean_fatalities = mean(FATALITIES)) %>% arrange(EVTYPE)
+head(harmful_df)
+```
+
+\textit{Most fatalities/injuries}
+
+```{r}
+harmful_df %>% arrange(desc(sum_fatalities)) %>% top_n(10)
+```
+```{r}
+harmful_df %>% arrange(desc(sum_injuries)) %>% top_n(10)
+```
+```{r}
+harmful_df %>% arrange(desc(mean_fatalities)) %>% top_n(10)
+```
+```{r}
+harmful_df %>% arrange(desc(mean_injuries)) %>% top_n(10)
+```
